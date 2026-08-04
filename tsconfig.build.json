@@ -1,0 +1,12 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"noEmit": false,
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+		"outDir": "dist"
+	},
+	// Tests and the fake-window test harness stay out of the published build.
+	"exclude": ["src/**/*.spec.ts", "src/testing"]
+}

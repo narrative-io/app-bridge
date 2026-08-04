@@ -1,0 +1,23 @@
+# dependencies
+node_modules
+
+# build output
+dist
+*.tgz
+
+# coverage
+coverage
+*.lcov
+
+# caches
+.cache
+*.tsbuildinfo
+
+# env
+.env
+.env.local
+.env.*.local
+
+# editors / OS
+.idea
+.DS_Store

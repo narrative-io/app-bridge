@@ -1,0 +1,28 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		// `nodenext` rather than `bundler`: it requires the explicit `.js`
+		// extensions that make the emitted ESM resolvable by Node and by strict
+		// bundlers. `bundler` permits extensionless relative imports and emits
+		// them verbatim, which produces a package that only works inside a
+		// bundler — not something to discover after publishing.
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"lib": ["ES2022", "DOM"],
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"exactOptionalPropertyTypes": true,
+		"isolatedModules": true,
+		"verbatimModuleSyntax": true,
+		"skipLibCheck": true,
+		// No ambient type packages. The bridge runs in a browser frame and in
+		// node, and depends on neither's globals beyond the structural
+		// interfaces it declares for itself.
+		"types": [],
+		"noEmit": true
+	},
+	"include": ["src"]
+}

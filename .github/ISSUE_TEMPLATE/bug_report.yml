@@ -1,0 +1,72 @@
+name: Bug report
+description: Something in the bridge behaves differently from what the docs describe
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: if your app never connects at all, `docs/troubleshooting.md`
+        covers the common causes (a `frame-ancestors`/`X-Frame-Options` header on
+        your own app, a mismatched `platformOrigin`, an origin the platform has
+        not registered). Those are configuration, not bugs in this package.
+
+  - type: dropdown
+    id: side
+    attributes:
+      label: Which side of the bridge
+      options:
+        - Guest (an embedded app using @narrative.io/app-bridge/guest)
+        - Host (an embedding platform using @narrative.io/app-bridge/host)
+        - Protocol types or validators
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      placeholder: 0.1.0
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and version
+      placeholder: Chrome 141 on macOS 15
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened
+      description: Include the `BridgeError` code and message verbatim if there was one.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The smallest `connect()`/`createBridgeHost()` call that shows it.
+      render: ts
+    validations:
+      required: true
+
+  - type: textarea
+    id: log
+    attributes:
+      label: Bridge message log
+      description: |
+        Pass `onLogEntry` to `connect()` or `createBridgeHost()` and paste what
+        crossed the boundary. Redact token values first — they are credentials.
+      render: text

@@ -1,0 +1,49 @@
+name: Feature request
+description: Propose a change to the bridge surface or the wire protocol
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The protocol is deliberately small — one handshake, two methods, four
+        events — and every addition is a compatibility commitment on both sides
+        of the boundary. Two categories are settled and will be declined:
+
+        - **Presentation.** Theme modes, design tokens, fonts, colours. The
+          bridge carries identity, authorization, and navigation. A shared
+          visual language, if one is ever offered, ships as a separate package.
+        - **Anything that makes the bridge a network client.** It has zero
+          runtime dependencies and makes no requests; apps call the API with
+          plain `fetch` and a bearer token.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What can't you build today
+      description: Describe the app behaviour you are blocked on, not the API you have in mind.
+    validations:
+      required: true
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: What you tried instead
+      description: Including whether the existing surface plus `fetch` got you partway.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed shape
+      description: A method, an event, or a context field — with the payload you'd expect.
+      render: ts
+
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints
+      options:
+        - label: This does not require a runtime dependency
+        - label: This carries no styling or presentational information
+        - label: An older peer that does not implement it still works (additive)
