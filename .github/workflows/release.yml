@@ -3,6 +3,11 @@ name: Release
 on:
   push:
     branches: [main]
+  # Retry path for a publish that failed after release-please already tagged.
+  # A plain re-run does not work: release-please reports `release_created` only
+  # on the push that merges its PR, so on any later run the publish step would
+  # be skipped and the version would stay missing from npm.
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -33,6 +38,25 @@ jobs:
       - name: Ensure npm supports trusted publishing
         run: npm i -g npm@^11.5.1
 
+      # setup-node's `registry-url` always writes
+      # `//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}` into a temp .npmrc.
+      # With no NODE_AUTH_TOKEN secret — which is the point of trusted publishing
+      # — that expands to an EMPTY token, and npm then believes auth is already
+      # configured and never starts the OIDC exchange. It sends the empty bearer
+      # instead and the registry answers 404, which reads like a permissions
+      # problem and is not one. Stripping the line lets npm see
+      # ACTIONS_ID_TOKEN_REQUEST_* and exchange the OIDC token properly.
+      # Upstream bug: https://github.com/actions/setup-node/issues/1551
+      - name: Remove the empty auth-token line that suppresses OIDC
+        run: |
+          set -euo pipefail
+          npmrc="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          if [ -f "$npmrc" ]; then
+            sed -i '/_authToken/d' "$npmrc"
+            echo "Stripped _authToken from $npmrc. Remaining config:"
+            cat "$npmrc"
+          fi
+
       - run: bun install --frozen-lockfile
 
       # Publish nothing that has not passed the same gates as a PR.
@@ -50,18 +74,45 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-      # No rebuild before publishing: this job runs on the push that merged the
-      # release PR, so the checkout above already carries the bumped version, and
-      # dist/ was built from it in the steps above.
+      # Publish when release-please just cut a release, or when a human dispatched
+      # this workflow to retry one. Either way, skip if the version is already on
+      # npm, so a retry is idempotent rather than a confusing 403.
+      - name: Decide whether to publish
+        id: gate
+        env:
+          RELEASE_CREATED: ${{ steps.release.outputs.release_created }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          version=$(node -p "require('./package.json').version")
+          name=$(node -p "require('./package.json').name")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ "$RELEASE_CREATED" != "true" ] && [ "$EVENT" != "workflow_dispatch" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "No release was cut on this push, and this is not a manual retry. Nothing to publish."
+            exit 0
+          fi
+          if npm view "$name@$version" version >/dev/null 2>&1; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "$name@$version is already on npm. Nothing to do."
+            exit 0
+          fi
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+          echo "Will publish $name@$version."
+
+      # No rebuild first: the checkout above already carries the released
+      # version, and dist/ was built from it by the gate steps.
       - name: Publish to npm (OIDC trusted publishing)
-        if: ${{ steps.release.outputs.release_created }}
+        if: steps.gate.outputs.publish == 'true'
         run: npm publish
 
       - name: Attach the browser bundle to the GitHub release
-        if: ${{ steps.release.outputs.release_created }}
+        if: steps.gate.outputs.publish == 'true'
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
-          tag_name: ${{ steps.release.outputs.tag_name }}
+          # release-please only reports tag_name on the push that cut the
+          # release; on a manual retry, derive it from the version instead.
+          tag_name: ${{ steps.release.outputs.tag_name || format('v{0}', steps.gate.outputs.version) }}
           files: |
             dist/app-bridge.global.js
             dist/app-bridge.global.js.map
