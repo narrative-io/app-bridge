@@ -1,7 +1,7 @@
 {
 	"name": "@narrative.io/app-bridge",
-	"version": "0.1.0",
-	"description": "Bridge between the Narrative platform and embedded third-party app UIs \u2014 origin-pinned MessageChannel protocol, zero runtime dependencies",
+	"version": "0.1.1",
+	"description": "Bridge between the Narrative platform and embedded third-party app UIs — origin-pinned MessageChannel protocol, zero runtime dependencies",
 	"license": "MIT",
 	"author": "Narrative I/O",
 	"homepage": "https://github.com/narrative-io/app-bridge#readme",
