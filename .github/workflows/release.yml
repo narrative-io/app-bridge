@@ -126,44 +126,6 @@ jobs:
           fi
           exit $failed
 
-      # TEMPORARY DIAGNOSTIC — remove once trusted publishing is confirmed working.
-      # npm falls back to ENEEDAUTH when the OIDC exchange is refused, which hides
-      # the registry's actual reason. Do the exchange by hand to surface it.
-      - name: Probe the OIDC exchange
-        if: steps.gate.outputs.publish == 'true'
-        continue-on-error: true
-        run: |
-          set -uo pipefail
-          echo "1. requesting a GitHub OIDC token for audience npm:registry.npmjs.org"
-          idtok=$(curl -sf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=npm:registry.npmjs.org" \
-            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{process.stdout.write(JSON.parse(s).value||'')}catch{}})")
-          if [ -z "$idtok" ]; then echo "   FAILED to get an id-token"; exit 0; fi
-          echo "   got an id-token ($(printf %s "$idtok" | wc -c | tr -d ' ') chars)"
-          # Claims identify the workflow to npm; these are what the trusted
-          # publisher config is matched against. Not secret.
-          echo "2. claims npm will match against your trusted publisher:"
-          printf %s "$idtok" | cut -d. -f2 | tr '_-' '/+' | base64 -d 2>/dev/null \
-            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const c=JSON.parse(s);for(const k of ['iss','aud','sub','repository','repository_owner','workflow_ref','job_workflow_ref','environment','ref','event_name'])console.log('     '+k+': '+(c[k]??'(absent)'))})"
-          echo "3. asking the registry to exchange it"
-          code=$(curl -s -o /tmp/ex.json -w '%{http_code}' -X POST \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer $idtok" \
-            "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/@narrative.io%2Fapp-bridge")
-          echo "   HTTP $code"
-          if [ "$code" != "200" ]; then echo "   body: $(cat /tmp/ex.json)"; else echo "   exchange succeeded (token not printed)"; fi
-          # Control: same endpoint, a package that already publishes via OIDC.
-          # Its trusted publisher names a different repo, so this cannot succeed —
-          # but a DIFFERENT error proves the endpoint is right and the difference
-          # is app-bridge's missing config rather than a bad probe.
-          echo "4. control against a package known to use OIDC (must not succeed)"
-          for pkg in "@narrative.io%2Fdata-collaboration-sdk-ts" "@narrative.io%2Fnope-does-not-exist"; do
-            c=$(curl -s -o /tmp/ctl.json -w '%{http_code}' -X POST \
-              -H "Content-Type: application/json" -H "Authorization: Bearer $idtok" \
-              "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/$pkg")
-            echo "   $pkg -> HTTP $c  body: $(head -c 200 /tmp/ctl.json)"
-          done
-
       # No rebuild first: the checkout above already carries the released
       # version, and dist/ was built from it by the gate steps.
       - name: Publish to npm (OIDC trusted publishing)
