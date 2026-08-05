@@ -43,14 +43,21 @@ bun run lint:check && bun run typecheck && bun run test:coverage && bun run buil
   changelog.
 - **`pre-push`** runs the full gate. It takes a couple of seconds.
 
-This matters more than it usually would, because **CI does not run on pull
-requests** in this repository — the release path holds npm publish rights, so
-nothing runs on an unvetted proposal. Without the hooks, the first thing that
-notices a type error is the push to `main`, which breaks `main` and blocks the
-release.
+Both are bypassable with `--no-verify` when you have a good reason.
 
-Both are bypassable with `--no-verify` when you have a good reason. You can also
-run the real CI against a branch before merging:
+### CI runs on every branch, not on pull requests
+
+Pushing any branch to this repository runs the full CI suite. There is no
+`pull_request` trigger: the repository is public and the release path holds npm
+publish rights, so nothing runs on a proposal from someone unvetted. A push
+trigger reaches exactly the people who already have write access, because a fork
+pull request creates commits in the fork and never here.
+
+The practical consequence for an outside contribution: it gets no automated
+checks until a maintainer pulls the branch into this repository. That is a
+deliberate trade, not an oversight.
+
+You can also run CI on demand:
 
 ```bash
 gh workflow run CI --ref my-branch

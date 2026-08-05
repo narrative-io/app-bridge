@@ -1,15 +1,19 @@
 name: CI
 
 on:
+  # Every branch, not just main. A fork pull request creates commits in the fork,
+  # never in this repository, so a push trigger fires for people who already have
+  # write access — us, and Renovate — and never for an outside contributor. That
+  # gives feature branches and dependency bumps automatic CI with none of the
+  # exposure a `pull_request` trigger carries.
   push:
-    branches: [main]
-  # No `pull_request` trigger, deliberately. A pull request from a fork gets a
-  # read-only token and no secrets, but this repository is public and the release
-  # path holds real privilege (npm trusted publishing, `id-token: write`), so the
-  # safe default until there are outside contributors is that nothing runs on a
-  # proposal from someone else. Re-add `pull_request` — never
-  # `pull_request_target` — when contributions start arriving, and keep it in a
-  # workflow that has no secrets and no id-token.
+    branches: ['**']
+  # No `pull_request` trigger, deliberately: this repository is public and the
+  # release path holds real privilege (npm trusted publishing, `id-token: write`),
+  # so nothing runs on a proposal from someone unvetted. The cost is that an
+  # outside contributor's PR gets no checks until a maintainer pulls the branch
+  # into this repository. When that becomes a real workflow, add `pull_request`
+  # here — never `pull_request_target`, and never to a workflow holding secrets.
   workflow_dispatch:
 
 permissions:
