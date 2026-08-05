@@ -1,0 +1,8 @@
+#!/bin/sh
+# release-please derives the version bump and the changelog from commit subjects,
+# so a mislabelled subject silently produces a wrong release. Catch it at commit
+# time rather than after the merge.
+#
+# Bypass with `git commit --no-verify`.
+set -e
+bunx commitlint --edit "$1"

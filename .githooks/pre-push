@@ -1,0 +1,17 @@
+#!/bin/sh
+# Runs the same gate CI runs, before anything leaves your machine.
+#
+# This exists because CI does not run on pull requests: without it, the first
+# thing that notices a lint or type error is the push to main, which breaks main
+# and blocks the release. The whole gate takes a couple of seconds.
+#
+# Bypass with `git push --no-verify` when you genuinely need to.
+set -e
+
+printf '\033[1mpre-push: running the CI gate\033[0m\n'
+bun run lint:check
+bun run typecheck
+bun run test
+bun run build
+bun run verify:build
+printf '\033[32mpre-push: all checks passed\033[0m\n'

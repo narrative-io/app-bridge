@@ -33,6 +33,29 @@ Before opening a PR, the whole gate in one line:
 bun run lint:check && bun run typecheck && bun run test:coverage && bun run build && bun run verify:build
 ```
 
+### Git hooks run this for you
+
+`bun install` points `core.hooksPath` at `.githooks/`, which gives you two hooks
+— no dependency involved, just shell scripts you can read:
+
+- **`commit-msg`** runs commitlint on your subject. Releases are automated from
+  commit subjects, so a mislabelled one produces a wrong version and a wrong
+  changelog.
+- **`pre-push`** runs the full gate. It takes a couple of seconds.
+
+This matters more than it usually would, because **CI does not run on pull
+requests** in this repository — the release path holds npm publish rights, so
+nothing runs on an unvetted proposal. Without the hooks, the first thing that
+notices a type error is the push to `main`, which breaks `main` and blocks the
+release.
+
+Both are bypassable with `--no-verify` when you have a good reason. You can also
+run the real CI against a branch before merging:
+
+```bash
+gh workflow run CI --ref my-branch
+```
+
 ## The rules that are not negotiable
 
 These are properties of the package rather than style preferences, and a PR that

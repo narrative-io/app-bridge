@@ -1,7 +1,7 @@
 {
 	"name": "@narrative.io/app-bridge",
 	"version": "0.1.0",
-	"description": "Bridge between the Narrative platform and embedded third-party app UIs — origin-pinned MessageChannel protocol, zero runtime dependencies",
+	"description": "Bridge between the Narrative platform and embedded third-party app UIs \u2014 origin-pinned MessageChannel protocol, zero runtime dependencies",
 	"license": "MIT",
 	"author": "Narrative I/O",
 	"homepage": "https://github.com/narrative-io/app-bridge#readme",
@@ -59,6 +59,7 @@
 	],
 	"scripts": {
 		"build": "bun run build:clean && bun run build:types && bun run build:global",
+		"prepare": "git config core.hooksPath .githooks || true",
 		"build:clean": "rm -rf dist",
 		"build:types": "tsc -p tsconfig.build.json",
 		"build:global": "bun build src/global.ts --target=browser --format=iife --minify --sourcemap=linked --outdir=dist --entry-naming=app-bridge.global.js",
