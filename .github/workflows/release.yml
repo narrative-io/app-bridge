@@ -128,17 +128,26 @@ jobs:
 
       # No rebuild first: the checkout above already carries the released
       # version, and dist/ was built from it by the gate steps.
+      # Verbose stays on deliberately. When the OIDC exchange is refused, npm's
+      # user-facing error is ENEEDAUTH, which says nothing useful; the reason
+      # appears only at verbose level, as
+      # `npm verbose oidc Failed token exchange request with body message: ...`.
+      # That line is what identified a one-character typo in the trusted
+      # publisher's workflow filename. Releases are rare; the noise is worth it.
       - name: Publish to npm (OIDC trusted publishing)
         if: steps.gate.outputs.publish == 'true'
         run: npm publish --loglevel verbose
 
+      # `gh` rather than an action: action-gh-release resolves the release from
+      # `github.ref` as well as `tag_name`, and on a workflow_dispatch that ref
+      # is `refs/heads/main` — not a tag — which it reports as "Resource not
+      # accessible by integration", a permissions error it isn't. The CLI takes
+      # the tag explicitly and behaves the same on both triggers.
       - name: Attach the browser bundle to the GitHub release
         if: steps.gate.outputs.publish == 'true'
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
-        with:
-          # release-please only reports tag_name on the push that cut the
-          # release; on a manual retry, derive it from the version instead.
-          tag_name: ${{ steps.release.outputs.tag_name || format('v{0}', steps.gate.outputs.version) }}
-          files: |
-            dist/app-bridge.global.js
-            dist/app-bridge.global.js.map
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # release-please reports tag_name only on the push that cut the
+          # release; on a manual retry, derive it from the version.
+          TAG: ${{ steps.release.outputs.tag_name || format('v{0}', steps.gate.outputs.version) }}
+        run: gh release upload "$TAG" dist/app-bridge.global.js dist/app-bridge.global.js.map --clobber
