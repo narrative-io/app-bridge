@@ -100,6 +100,32 @@ jobs:
           echo "publish=true" >> "$GITHUB_OUTPUT"
           echo "Will publish $name@$version."
 
+      # Without this, a missing prerequisite surfaces as `ENEEDAUTH` ("you need
+      # to authorize this machine"), which sends you looking for a token that is
+      # deliberately absent. Check the two things OIDC actually needs and say
+      # which one is missing.
+      - name: Verify OIDC prerequisites
+        if: steps.gate.outputs.publish == 'true'
+        run: |
+          set -euo pipefail
+          echo "npm $(npm --version) at $(command -v npm)"
+          echo "node $(node --version)"
+          failed=0
+          if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ] || [ -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]; then
+            echo "::error::No OIDC token endpoint in this job's environment, so npm cannot exchange anything. The job needs 'id-token: write'."
+            failed=1
+          else
+            echo "OIDC token endpoint: present"
+          fi
+          npmrc="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          echo "--- npmrc ($npmrc) ---"
+          cat "$npmrc" 2>/dev/null || echo "(no npmrc)"
+          if grep -q "_authToken" "$npmrc" 2>/dev/null; then
+            echo "::error::An _authToken line is still present; npm will treat auth as configured and skip OIDC."
+            failed=1
+          fi
+          exit $failed
+
       # No rebuild first: the checkout above already carries the released
       # version, and dist/ was built from it by the gate steps.
       - name: Publish to npm (OIDC trusted publishing)
