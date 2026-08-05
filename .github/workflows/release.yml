@@ -27,8 +27,11 @@ jobs:
           node-version: 24.18.0
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Ensure npm 11+
-        run: npm i -g npm@^11.5.0
+      # Trusted publishing needs npm >= 11.5.1; the runner's bundled npm may be
+      # older, and an older npm falls back to looking for a token that does not
+      # exist here.
+      - name: Ensure npm supports trusted publishing
+        run: npm i -g npm@^11.5.1
 
       - run: bun install --frozen-lockfile
 
