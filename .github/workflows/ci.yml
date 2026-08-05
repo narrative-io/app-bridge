@@ -3,8 +3,14 @@ name: CI
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+  # No `pull_request` trigger, deliberately. A pull request from a fork gets a
+  # read-only token and no secrets, but this repository is public and the release
+  # path holds real privilege (npm trusted publishing, `id-token: write`), so the
+  # safe default until there are outside contributors is that nothing runs on a
+  # proposal from someone else. Re-add `pull_request` — never
+  # `pull_request_target` — when contributions start arriving, and keep it in a
+  # workflow that has no secrets and no id-token.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -133,7 +139,6 @@ jobs:
 
   commitlint:
     name: Conventional commits
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -147,7 +152,17 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      # release-please derives versions and the changelog from commit subjects,
-      # so a non-conventional commit silently produces a wrong release.
-      - name: Lint commit messages in this PR
-        run: bunx commitlint --from "${{ github.event.pull_request.base.sha }}" --to "${{ github.event.pull_request.head.sha }}" --verbose
+      # Lints the commits in this push. Without a pull_request trigger this is
+      # the only chance to catch a subject release-please would misread — it
+      # derives the version bump and changelog from them.
+      - name: Lint commit messages in this push
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || [ -z "$BEFORE" ]; then
+            from="${{ github.sha }}~1"
+          else
+            from="$BEFORE"
+          fi
+          bunx commitlint --from "$from" --to "${{ github.sha }}" --verbose
