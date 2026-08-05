@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/narrative-io/app-bridge/compare/v0.1.0...v0.1.1) (2026-08-05)
+
+
+### Bug Fixes
+
+* **ci:** let OIDC actually run, and make a failed publish retryable ([356507e](https://github.com/narrative-io/app-bridge/commit/356507e753259615e4ee210b9158c3e58182c4d9))
+
 ## 0.1.0 (2026-08-05)
 
 
