@@ -47,24 +47,16 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-      # release-please bumps package.json in its release commit, so rebuild
-      # from the released tree before packing.
-      - name: Rebuild at the released version
-        if: ${{ steps.release.outputs.release_created }}
-        run: |
-          git fetch --tags
-          git checkout ${{ steps.release.outputs.tag_name }}
-          bun install --frozen-lockfile
-          bun run build
-          bun run verify:build
-
+      # No rebuild before publishing: this job runs on the push that merged the
+      # release PR, so the checkout above already carries the bumped version, and
+      # dist/ was built from it in the steps above.
       - name: Publish to npm (OIDC trusted publishing)
         if: ${{ steps.release.outputs.release_created }}
         run: npm publish
 
       - name: Attach the browser bundle to the GitHub release
         if: ${{ steps.release.outputs.release_created }}
-        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           tag_name: ${{ steps.release.outputs.tag_name }}
           files: |

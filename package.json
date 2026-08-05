@@ -69,7 +69,7 @@
 		"test:coverage": "vitest run --coverage",
 		"typecheck": "tsc -p tsconfig.json",
 		"lint": "biome check --write .",
-		"lint:check": "biome check .",
+		"lint:check": "biome check --error-on-warnings .",
 		"format": "biome format --write .",
 		"prepublishOnly": "bun run build && bun run verify:build"
 	},
