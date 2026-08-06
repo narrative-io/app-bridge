@@ -15,8 +15,12 @@ and no amount of bridge configuration helps. If you set `frame-ancestors` — an
 you should — name the platform:
 
 ```http
-Content-Security-Policy: frame-ancestors https://app.narrative.io
+Content-Security-Policy: frame-ancestors https://app.narrative.io;
 ```
+
+[Making your app frameable](making-your-app-frameable.md) has the exact
+configuration for Cloudflare, nginx, Vercel, Netlify, Express, and the
+frameworks that send a blocking header by default.
 
 **2. Your origin must be registered with Narrative.** The platform will only
 frame an origin it knows about, and pins the bridge conversation to it.

@@ -143,6 +143,10 @@ header or name the platform:
 Content-Security-Policy: frame-ancestors https://app.narrative.io
 ```
 
+[Making your app frameable](making-your-app-frameable.md) has the configuration
+for common hosts, including the frameworks that send a blocking header unless you
+turn it off.
+
 Also check that your dev server is running, that its URL is reachable in a normal
 tab, and — if the platform is on `https:` — that your app is too. Browsers block
 mixed-content frames.

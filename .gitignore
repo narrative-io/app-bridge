@@ -21,3 +21,6 @@ coverage
 # editors / OS
 .idea
 .DS_Store
+
+# example build output
+examples/*/dist

@@ -1,0 +1,5 @@
+# Adding `workspaces` to package.json flips bun's default linker to "isolated",
+# which prunes the transitive dependencies some tooling resolves implicitly.
+# Pin hoisted so adding the example did not quietly change how anything resolves.
+[install]
+linker = "hoisted"

@@ -181,6 +181,42 @@ keeps the two implementations of one protocol in one place where a change to the
 wire format cannot update one side and forget the other. The tests exercise both
 halves against each other, which is only cheap because they are together.
 
+### The example lives here, and is compiled by CI
+
+`examples/embedded-app` is in this repository rather than in one of its own, and
+that is a deliberate reversal of an earlier arrangement.
+
+A published example that CI does not build **rots silently**, and a rotted
+example is worse than no example, because it is believed. Keeping it here means
+it is linked to the repository root and compiles against the build produced in
+the same CI run, through the same export map a third party resolves. It cannot
+reference a method that no longer exists.
+
+It also runs in the other direction: the example is a consumer test. A breaking
+change to the guest surface fails the example's build **before** a release rather
+than being discovered by someone else after one. An example that depends on the
+*published* package can only ever exercise yesterday's API, which is the wrong
+way round for catching a regression.
+
+What the example deliberately does **not** contain is deployment configuration.
+Hosting is the app author's choice and prescribing ours would teach nothing about
+the bridge. The one deployment concern that is not optional — the response
+headers that decide whether a browser will frame the app at all — is documented
+in [docs/making-your-app-frameable.md](docs/making-your-app-frameable.md)
+instead, because it is guidance rather than infrastructure and applies whatever
+the host.
+
+Two roles were previously served by one artifact: teaching third-party
+developers, and proving the library works in a real deployed environment. They
+conflict. A reference implementation must model correct practice — pin your
+platform origins in code — while a deployment proof needs to work against
+ephemeral preview origins that do not exist at build time, which can only be done
+by trusting whoever framed the page: precisely the practice the security model
+tells developers to avoid. Serving both meant shipping an example that
+contradicted the documentation and then apologising for it in the UI. The
+teaching artifact lives here, honest and narrow; validating a deployment is a
+separate exercise with separate infrastructure.
+
 ### Considered and rejected: a proxy model
 
 The guest would call the Narrative API *through* the bridge and never hold a

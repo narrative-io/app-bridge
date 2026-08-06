@@ -14,4 +14,7 @@ bun run typecheck
 bun run test
 bun run build
 bun run verify:build
+bun run example:typecheck
+bun run example:test
+bun run example:build
 printf '\033[32mpre-push: all checks passed\033[0m\n'

@@ -6,7 +6,7 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"includes": ["**/*.ts", "**/*.mjs", "**/*.json", "**/*.jsonc", "!dist", "!coverage"]
+		"includes": ["**/*.ts", "**/*.mjs", "**/*.json", "**/*.jsonc", "!dist", "!coverage", "!examples/*/dist"]
 	},
 	"formatter": {
 		"enabled": true,
@@ -27,7 +27,9 @@
 			"suspicious": {
 				"noConsole": {
 					"level": "error",
-					"options": { "allow": ["warn"] }
+					"options": {
+						"allow": ["warn"]
+					}
 				}
 			}
 		}
@@ -41,7 +43,7 @@
 	},
 	"overrides": [
 		{
-			"includes": ["scripts/**"],
+			"includes": ["scripts/**", "examples/*/serve.ts"],
 			"linter": {
 				"rules": {
 					"suspicious": {

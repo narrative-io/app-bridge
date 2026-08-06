@@ -55,6 +55,19 @@ jobs:
       - name: Verify build output
         run: bun run verify:build
 
+      # The example is linked to the repo root, so it compiles against the dist
+      # built above and through the same export map a third party gets. That is
+      # the whole point of keeping it here: a published example that is not
+      # built by CI rots silently, and a rotted example is worse than none
+      # because it is believed. This step is also a consumer test — a breaking
+      # change to the guest surface fails here, before the release rather than
+      # after it.
+      - name: Build the reference example against this build
+        run: |
+          bun run example:typecheck
+          bun run example:test
+          bun run example:build
+
   # A third party consuming this package is the thing most likely to break
   # silently, so install the packed tarball the way they would and import it
   # through the export map on the Node versions the package claims to support.

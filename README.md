@@ -74,7 +74,9 @@ No bundler? There is a `<script>` build that attaches a single global:
    the handshake overlaps your app's own startup.
 2. **Your app must be frameable.** An `X-Frame-Options: DENY` header, or a CSP
    `frame-ancestors` directive that excludes the platform, means your app cannot
-   be embedded at all, no matter what the platform allows.
+   be embedded at all, no matter what the platform allows — the browser refuses
+   before your code runs. See
+   [making your app frameable](docs/making-your-app-frameable.md).
 3. **Look and feel is yours.** The bridge deliberately carries no styling or
    theming information, and never will. It moves identity, authorization, and
    navigation — facts, not presentation.
@@ -87,11 +89,22 @@ No bundler? There is a `<script>` build that attaches a single global:
 | | |
 |---|---|
 | [Getting started](docs/getting-started.md) | Connecting, calling the API, navigation, and the full guest API reference |
+| [Making your app frameable](docs/making-your-app-frameable.md) | The server headers your app needs, by host. The most common cause of a blank frame |
 | [Protocol](docs/protocol.md) | The wire format, message by message, and the compatibility rules |
 | [Security model](docs/security.md) | What the bridge guarantees, what it does not, and what each side must do |
 | [Hosting apps](docs/hosting.md) | The `host` surface, for a platform embedding apps |
 | [Troubleshooting](docs/troubleshooting.md) | Every `BridgeError` code and what actually causes it |
 | [Architecture](ARCHITECTURE.md) | Why the protocol is shaped this way, including the paths not taken |
+
+## A working example
+
+[`examples/embedded-app`](examples/embedded-app) is a complete embedded app built
+from `guest` and `fetch` and nothing else — origin pinning, context on first
+paint, a real API call, controlled-component navigation, and the states that are
+easy to forget (connecting, not-embedded, not-installed).
+
+It is compiled against this package's own build on every CI run, so it cannot
+drift from the API it demonstrates.
 
 ## The surface, at a glance
 
