@@ -109,6 +109,34 @@ Most send `X-Frame-Options: DENY` or `SAMEORIGIN` out of the box. Django:
 isn't there — this is the usual cause of "it works locally, it's blank in
 production", because dev servers rarely send it and production configurations do.
 
+## If you send a `connect-src` policy, allow the API
+
+A CSP that restricts `connect-src` will block your calls to the Narrative API
+unless it names the API origin — and the origin is not a constant. The platform
+tells you which one to use in `context.apiBaseUrl`, and it differs by
+environment: a production platform hands you `https://api.narrative.io`, while a
+development one hands you `https://api-dev.narrative.io`.
+
+So an app that hard-codes only production works in production and fails
+everywhere else, with a console error that looks like a bridge problem and is
+not one:
+
+```
+Refused to connect to 'https://api-dev.narrative.io/…' because it violates
+the document's Content Security Policy directive: "connect-src 'self' https://api.narrative.io"
+```
+
+Name every API origin your app will be pointed at:
+
+```http
+Content-Security-Policy: frame-ancestors https://app.narrative.io;
+  connect-src 'self' https://api.narrative.io https://api-dev.narrative.io;
+```
+
+The same applies to any other environment you are given access to. If you would
+rather not track the list, omit `connect-src` — you lose a defence-in-depth
+measure, but you will not be broken by an environment you have not seen yet.
+
 ## The rest of the checklist
 
 **Serve over HTTPS.** A page on `https://` cannot frame content from `http://`;
