@@ -189,7 +189,11 @@ jobs:
           BEFORE: ${{ github.event.before }}
         run: |
           set -euo pipefail
-          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || [ -z "$BEFORE" ]; then
+          # A force-push leaves github.event.before pointing at a commit that the
+          # rewrite orphaned. Orphans are unreachable from any ref, so even
+          # fetch-depth: 0 does not fetch them and the range is invalid.
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || [ -z "$BEFORE" ] \
+            || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
             from="${{ github.sha }}~1"
           else
             from="$BEFORE"
